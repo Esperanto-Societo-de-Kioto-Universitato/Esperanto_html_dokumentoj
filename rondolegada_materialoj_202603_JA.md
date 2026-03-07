@@ -1,13 +1,3 @@
----
-title: "Rondolegadaj materialoj por japana-korea studgrupo (2026-03)"
-generated_at: "2026-03-04"
-period: "2025-03-03 -- 2026-03-03"
-sources: "El Popola Ĉinio, Global Voices, Libera Folio, Monato, Pola Retradio, UEA Facila"
-total_articles_screened: ~1024
-selected: 10
-target_audience: "日韓のエスペランチスト（輪読会）"
----
-
 # Rondolegadaj Materialoj -- 2026年3月 輪読素材集
 
 > **対象期間**: 2025-03-03 〜 2026-03-03（直近1年）
