@@ -1,13 +1,3 @@
----
-title: "일본-한국 스터디 그룹을 위한 윤독 자료 (2026-03)"
-generated_at: "2026-03-04"
-period: "2025-03-03 -- 2026-03-03"
-sources: "El Popola Ĉinio, Global Voices, Libera Folio, Monato, Pola Retradio, UEA Facila"
-total_articles_screened: ~1024
-selected: 10
-target_audience: "한일 에스페란티스토 (윤독회)"
----
-
 # Rondolegadaj Materialoj -- 2026년 3월 윤독 자료집
 
 > **대상 기간**: 2025-03-03 ~ 2026-03-03 (최근 1년)
