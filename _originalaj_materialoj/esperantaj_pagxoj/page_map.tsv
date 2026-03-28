@@ -1,0 +1,16 @@
+source_pdf	output_pdf	pages	public_html	article_html	basis
+RO_2026-03.pdf	RO_2026-03_esperantaj_pagxoj.pdf	2,4-10	revuoj/revuo-orienta/2026/202603_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLと目次を照合し、記事本文ページのみを採用
+RO_2026-02.pdf	RO_2026-02_esperantaj_pagxoj.pdf	2,6-7,27-28	revuoj/revuo-orienta/2026/202602_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLの5区分と本文フレーズを照合
+RO_2026-01.pdf	RO_2026-01_esperantaj_pagxoj.pdf	2,4-5,10-11	revuoj/revuo-orienta/2026/202601_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLの誌面番号表記と本文照合
+RO_2025-12.pdf	RO_2025-12_esperantaj_pagxoj.pdf	4-11	-	legajxoj/eseoj-kaj-artikoloj/Revuo_eseoj_verkitaj_de_s-ro_usui_corrected.html	抽出PDFは3本構成。p.1-3 は「韓国 AI 点描」、p.4-6 は長谷川テル顕彰旅行、p.7-8 は臼井氏エッセイ後半。現行の月号本文HTML（202512_...html）は別内容を含むため公開対象外。公開済み個別ページは長谷川テル特集と臼井氏エッセイ後半のみ
+RO_2025-11.pdf	RO_2025-11_esperantaj_pagxoj.pdf	2,5-8,10-11	-	-	目次と本文冒頭を照合し、エスペラント本文ページのみを採用。対応する月号本文HTMLは未整備
+RO_2025-10.pdf	RO_2025-10_esperantaj_pagxoj.pdf	2,8-11,17,23	revuoj/revuo-orienta/2025/202510_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLと本文フレーズを照合
+RO_2025-0809.pdf	RO_2025-0809_esperantaj_pagxoj.pdf	2,8-9	revuoj/revuo-orienta/2025/202508_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTML（8・9月合併号）と本文照合
+RO_2025-07.pdf	RO_2025-07_esperantaj_pagxoj.pdf	2,8-9,17-18,35-36	revuoj/revuo-orienta/2025/202507_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLと本文フレーズを照合
+RO_2025-06.pdf	RO_2025-06_esperantaj_pagxoj.pdf	2,8-11,18-19,22,31	revuoj/revuo-orienta/2025/202506_Revuo_eltiritaj_Esperantaj_pagxoj_kun_japanaj_tradukoj.html	-	既存HTMLと本文冒頭を照合
+202505_Revuo.pdf	202505_Revuo_esperantaj_pagxoj.pdf	4-7,10-13	revuoj/revuo-orienta/2025/202505_Revuo_eltiritaj_Esperantaj_pagxoj.html	legajxoj/eseoj-kaj-artikoloj/La_eseo_pri_Butano.html	目次と既存HTMLを照合
+RO_2025-04.pdf	RO_2025-04_esperantaj_pagxoj.pdf	6-15	revuoj/revuo-orienta/2025/202504_Revuo_eltiritaj_Esperantaj_pagxoj.html	-	既存HTMLの誌面番号痕跡と本文照合
+RO_2025-03.pdf	RO_2025-03_esperantaj_pagxoj.pdf	2,14-17	revuoj/revuo-orienta/2025/202503,Revuo,eltiritaj_Esperantaj_pagxoj.html	-	既存HTMLと本文一致度を照合
+vereaufantazie.pdf	vereaufantazie_esperantaj_pagxoj.pdf	1-123	legajxoj/vere-aux-fantazie/vere_aux_fantazie.html	-	本文全体がエスペラント作品のため全文採用
+RO_2025-02.pdf	RO_2025-02_esperantaj_pagxoj.pdf	8-11	-	-	目次と本文冒頭を照合し、エスペラント本文が明確なページに限定。対応する月号本文HTMLは未整備
+RO_2025-01.pdf	RO_2025-01_esperantaj_pagxoj.pdf	5-11	-	legajxoj/eseoj-kaj-artikoloj/Revuo_eseoj_verkitaj_de_s-ro_usui_corrected.html	抽出PDFは3本構成。p.1 は谷川俊太郎「見舞い」、p.2-5 は第3回日韓共同開催エスペラント大会報告、p.6-7 は臼井氏エッセイ前半。対応する月号本文HTMLは未整備で、個別記事HTMLは臼井氏部分のみ
