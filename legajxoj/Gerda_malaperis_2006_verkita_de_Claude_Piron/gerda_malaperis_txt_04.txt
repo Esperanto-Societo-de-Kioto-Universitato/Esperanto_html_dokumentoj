@@ -1,0 +1,67 @@
+## Ĉapitro 4
+## 第4章
+**KIU ESTAS TIU GERDA?**
+**そのゲルダって誰？**
+
+* **Bob**: Diru al mi sincere, pri kio vi parolas?
+  日本語訳: 正直に言ってくれよ、何の話をしているんだ？
+* **Tom**: Ni parolis pri tiu ulo.
+  日本語訳: あの男の話をしていたんだ。
+* **Bob**: Kiu ulo?
+  日本語訳: どの男？
+* **Tom**: Tiu viro ĉe la angulo. Tiu juna viro.
+  日本語訳: 隅にいたあの男だよ。あの若い男。
+* **Bob**: Pri kiu vi parolas? Ĉu pri tiu blondulo, kiu sidas kun Gerda?
+  日本語訳: 誰のことだい？ ゲルダと一緒に座っているあの金髪男のことかい？
+* **Linda**: Gerda! Vi do scias, ke ŝia nomo estas Gerda! Vi do konas ŝin!
+  日本語訳: ゲルダ！ あなた、彼女の名前がゲルダだって知ってるのね！ じゃあ知り合いなんだ！
+* **Bob**: Nu, mi ne vere konas ŝin. Mi scias, kiu ŝi estas. Tio estas alia afero.
+  日本語訳: いや、本当に知り合いというわけじゃない。彼女が誰かを知っているだけだ。それは別の話だよ。
+* **Linda**: Kiu do ŝi estas?
+  日本語訳: じゃあ、彼女はいったい誰なの？
+* **Bob**: Sed vi ne respondis al mi. Vi ne respondis al mia demando. Ĉu vere pri tiu blonda junulo vi parolis?
+  日本語訳: でも、君たちはまだ僕の質問に答えていないよ。僕の問いに答えていない。本当にあの金髪の若者の話をしていたのかい？
+* **Tom**: Jes. Pri li.
+  日本語訳: ああ。彼のことだ。
+* **Bob**: Mi ne konas lin. Mi neniam vidis lin antaŭe.
+  日本語訳: 彼のことは知らない。前に見たことも一度もないよ。
+
+***
+* **Linda**: Sed, diru al mi, kiu estas tiu Gerda?
+  日本語訳: でも、教えてよ。そのゲルダって誰なの？
+* **Bob**: Ŝi venis por instrui. Temas pri io mistera, fakte. Kriptaĵo-scienco.
+  日本語訳: 彼女は教えに来たんだ。実のところ、ちょっと不思議な分野でね。暗号学だよ。
+* **Linda**: Kio? Kiel vi diris? Krip-ta-ĵo-sci-en-co, ĉu? Kio estas tio?
+  日本語訳: 何？ 何て言ったの？ あん・ごう・がく、ですって？ それって何？
+* **Bob**: Ĉu vere vi ne scias, kio estas kriptaĵoscienco? Oni diras ankaŭ «kriptografio».
+  日本語訳: 本当に暗号学が何か知らないのかい？ 「クリプトグラフィー」とも言うよ。
+* **Linda**: Ne. Mi ne scias. Mi tute ne scias. Ĉu vi scias, Tom?
+  日本語訳: いいえ、知らない。まったく知らないわ。トム、あなたは知ってる？
+* **Tom**: Ĉu tio ne estas la arto kompreni, pri kio temas sekreta mesaĝo?
+  日本語訳: それって、秘密のメッセージが何を意味しているかを読み解く技術のことじゃないのかい？
+* **Bob**: Prave. Jen ŝia fako. Fakte, ŝia fako estas la malnovaj sekretaj lingvoj.
+  日本語訳: そのとおり。それが彼女の専門なんだ。実際には、古い秘密言語が彼女の専門分野だよ。
+* **Tom**: Mi ne komprenas. Kiu, en universitato, volas lerni pri malnovaj sekretaj lingvoj?
+  日本語訳: わからないなあ。大学で、いったい誰が古い秘密言語なんて学びたがるんだ？
+* **Bob**: Ankaŭ mi ne tute komprenas. Estis ideo de Ronga, la profesoro pri lingvistiko. Li konsideras, ke sekretaj lingvoj estas aspekto de la arto komuniki, kaj ke ili do rilatas al lingvistiko.
+  日本語訳: 僕にも完全にはわからないよ。言語学の教授ロンガの発案だったんだ。彼は、秘密言語もコミュニケーションの技術の一面であり、だから言語学に関係すると考えているんだ。
+* **Linda**: Eble jes. Eble li pravas. Kaj tamen tiu ideo estas iom stranga, ĉu vi ne konsentas?
+  日本語訳: そうかもしれないわね。彼が正しいのかもしれない。でも、それでも少し変わった考えよね、そう思わない？
+* **Bob**: Jes. Ĝi aspektis strange ankaŭ al mi, kiam oni parolis pri ĝi.
+  日本語訳: うん。その話を聞いたとき、僕にもやっぱり変わっているように思えたよ。
+
+***
+* **Linda**: Eble Ronga, la lingvistika profesoro, nur deziris, ke bela virino kunlaboru kun li. Ĉu ne estas bona ideo kunlabori kun bela knabino, kiam tio estas ebla?
+  日本語訳: たぶん言語学教授のロンガは、ただ美しい女性に一緒に仕事をしてほしかっただけなのよ。できるなら、きれいな女の子と一緒に働くのって悪くない考えじゃない？
+* **Tom**: Mi jam diris al vi, ke ŝi ne estas bela. Nur vi estas bela.
+  日本語訳: もう言っただろ、彼女はきれいじゃない。きれいなのは君だけだ。
+* **Bob**: Mi ne konsentas. Estas fakto, ke Linda estas tre bela, ke ŝi estas la plej bela knabino en la mondo. Sed ankaŭ Gerda estas bela. Iom malpli bela, sed tamen bela. Ĉu vi konsentas?
+  日本語訳: 僕はそうは思わない。リンダがとてもきれいで、この世でいちばんきれいな女の子だというのは事実だ。でも、ゲルダだってきれいだよ。少しだけ劣るかもしれないが、それでもきれいだ。君はどう思う？
+* **Tom**: Tute ne. Por vi, eble. Sed por mi ne. Por mi, nur Linda ekzistas kiel bela virino.
+  日本語訳: まったくそうは思わない。君にとってはそうかもしれない。でも僕にとっては違う。僕にとって、美しい女性として存在するのはリンダだけなんだ。
+* **Bob**: Ĉu vi volas diri, ke por vi Linda estas la sola bela virino en la tuta mondo?
+  日本語訳: つまり君にとって、リンダは世界でただ一人の美しい女性だと言いたいのかい？
+* **Tom**: Jes. Por mi, Linda estas la sola bela virino en la tuta mondo.
+  日本語訳: そう。僕にとっては、リンダだけが世界で唯一の美しい女性なんだ。
+* **Bob**: Diable! Vi verŝajne amas ŝin.
+  日本語訳: なんてこった！ 君はきっと彼女に恋しているんだな。
