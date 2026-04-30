@@ -80,8 +80,9 @@ show_menu() {
     echo "11. git remote -v"
     echo "12. git diff"
     echo "13. git stash -> git pull --rebase -> git stash pop"
-    echo "14. git fetch"
-    echo "15. git reset (ステージング取消 / コミット取消)"
+    echo "14. enforce LF (Ubuntu) line endings"
+    echo "15. git fetch"
+    echo "16. git reset (ステージング取消 / コミット取消)"
     echo "h. Help"
     echo "0. Exit"
 }
@@ -104,8 +105,9 @@ show_help() {
     echo "12. git diff          : 変更内容の差分を表示"
     echo "13. git stash -> git pull --rebase -> git stash pop :"
     echo "    未コミットの変更を stash で退避し、rebase 付き pull 後に再度変更を適用"
-    echo "14. git fetch         : リモートの最新状態を取得（マージはしない）"
-    echo "15. git reset         : ステージング取消 or コミット取消"
+    echo "14. enforce LF line endings : Windows/Ubuntu互換の改行・権限設定を適用"
+    echo "15. git fetch         : リモートの最新状態を取得（マージはしない）"
+    echo "16. git reset         : ステージング取消 or コミット取消"
     echo "h. Help               : このヘルプを表示"
     echo "0. Exit               : スクリプトを終了"
     echo "---------------------------------"
@@ -189,6 +191,74 @@ git_pull_rebase_with_stash() {
         echo -e "${YELLOW}No stash entries to pop.${NC}"
         log_action "INFO: No stash entries to pop"
     fi
+}
+
+# Windows/Ubuntu互換の改行・権限設定
+enforce_cross_platform_line_endings() {
+    echo "Applying Windows/Ubuntu compatible Git settings..."
+
+    {
+        printf '%s\n' '# Keep text normalized in Git, then choose safe working-tree endings.'
+        printf '%s\n' '* text=auto'
+        printf '%s\n' ''
+        printf '%s\n' '# Unix/Linux scripts must stay LF so they run correctly on Ubuntu.'
+        printf '%s\n' '*.sh text eol=lf'
+        printf '%s\n' '*.bash text eol=lf'
+        printf '%s\n' ''
+        printf '%s\n' '# Source and web content are safest as LF across Windows and Ubuntu.'
+        printf '%s\n' '*.py text eol=lf'
+        printf '%s\n' '*.html text eol=lf'
+        printf '%s\n' '*.htm text eol=lf'
+        printf '%s\n' '*.css text eol=lf'
+        printf '%s\n' '*.js text eol=lf'
+        printf '%s\n' '*.json text eol=lf'
+        printf '%s\n' '*.md text eol=lf'
+        printf '%s\n' '*.txt text eol=lf'
+        printf '%s\n' '*.ipynb text eol=lf'
+        printf '%s\n' '*.yml text eol=lf'
+        printf '%s\n' '*.yaml text eol=lf'
+        printf '%s\n' ''
+        printf '%s\n' '# Windows command files should keep CRLF in the working tree.'
+        printf '%s\n' '*.bat text eol=crlf'
+        printf '%s\n' '*.cmd text eol=crlf'
+        printf '%s\n' '*.ps1 text eol=crlf'
+        printf '%s\n' ''
+        printf '%s\n' '# Binary files must never be line-ending normalized.'
+        printf '%s\n' '*.pdf binary'
+        printf '%s\n' '*.png binary'
+        printf '%s\n' '*.jpg binary'
+        printf '%s\n' '*.jpeg binary'
+        printf '%s\n' '*.gif binary'
+        printf '%s\n' '*.webp binary'
+        printf '%s\n' '*.ico binary'
+        printf '%s\n' '*.woff binary'
+        printf '%s\n' '*.woff2 binary'
+        printf '%s\n' '*.ttf binary'
+        printf '%s\n' '*.otf binary'
+        printf '%s\n' '*.zip binary'
+    } > .gitattributes
+
+    run_command "git config core.autocrlf false"
+    run_command "git config core.eol lf"
+    run_command "git config core.filemode false"
+
+    if [ -f "git_command_2512.sh" ]; then
+        run_command "git update-index --chmod=+x git_command_2512.sh"
+    fi
+
+    if [ -f "git_command_2512.cmd" ]; then
+        run_command "git update-index --chmod=-x git_command_2512.cmd"
+    fi
+
+    run_command "git add --renormalize ."
+    run_command "git add .gitattributes"
+
+    echo -e "${YELLOW}Verification:${NC}"
+    git ls-files --eol git_command_2512.sh git_command_2512.cmd .gitattributes 2>/dev/null
+    git ls-files -s git_command_2512.sh git_command_2512.cmd .gitattributes 2>/dev/null
+    git status --short
+    echo -e "${YELLOW}Expected: .sh is i/lf w/lf and 100755; .cmd is w/crlf and 100644.${NC}"
+    echo -e "${YELLOW}If the output looks correct, commit the normalization.${NC}"
 }
 
 # git reset機能（ステージング取消 / コミット取消）
@@ -327,10 +397,14 @@ while true; do
             git_pull_rebase_with_stash
             ;;
         14)
+            # enforce LF line endings
+            enforce_cross_platform_line_endings
+            ;;
+        15)
             # git fetch
             run_command "git fetch"
             ;;
-        15)
+        16)
             # git reset
             git_reset_menu
             ;;
@@ -349,4 +423,3 @@ while true; do
 
     echo "" # 空行を挿入して見やすくする
 done
-
