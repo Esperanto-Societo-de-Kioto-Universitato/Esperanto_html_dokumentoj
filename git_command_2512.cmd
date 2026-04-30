@@ -214,11 +214,76 @@ function Invoke-GitReset {
 }
 
 function Invoke-EnforceLFEndings {
-    Write-Host "Setting repository to Ubuntu (LF) line endings..."
+    Write-Host "Applying Windows/Ubuntu compatible Git settings..." -ForegroundColor Cyan
+
+    $gitattributes = @'
+# Keep text normalized in Git, then choose safe working-tree endings.
+* text=auto
+
+# Unix/Linux scripts must stay LF so they run correctly on Ubuntu.
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Source and web content are safest as LF across Windows and Ubuntu.
+*.py text eol=lf
+*.html text eol=lf
+*.htm text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.ipynb text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Windows command files should keep CRLF in the working tree.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files must never be line-ending normalized.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+'@
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText((Join-Path (Get-Location) ".gitattributes"), $gitattributes + [Environment]::NewLine, $utf8NoBom)
+
     Invoke-GitCommand -Arguments @("config", "core.autocrlf", "false") -Description "git config core.autocrlf false"
-    Write-Host "Re-normalizing tracked files to LF..."
+    Invoke-GitCommand -Arguments @("config", "core.eol", "lf") -Description "git config core.eol lf"
+    Invoke-GitCommand -Arguments @("config", "core.filemode", "false") -Description "git config core.filemode false"
+
+    if (Test-Path -Path "git_command_2512.sh") {
+        Invoke-GitCommand -Arguments @("update-index", "--chmod=+x", "git_command_2512.sh") -Description "git update-index --chmod=+x git_command_2512.sh"
+    }
+
+    if (Test-Path -Path "git_command_2512.cmd") {
+        Invoke-GitCommand -Arguments @("update-index", "--chmod=-x", "git_command_2512.cmd") -Description "git update-index --chmod=-x git_command_2512.cmd"
+    }
+
     Invoke-GitCommand -Arguments @("add", "--renormalize", ".") -Description "git add --renormalize ."
-    Write-Host "Review 'git status' and commit the normalization if needed." -ForegroundColor Yellow
+    Invoke-GitCommand -Arguments @("add", ".gitattributes") -Description "git add .gitattributes"
+
+    Write-Host ""
+    Write-Host "Verification:" -ForegroundColor Yellow
+    & git ls-files --eol git_command_2512.sh git_command_2512.cmd .gitattributes 2>$null
+    & git ls-files -s git_command_2512.sh git_command_2512.cmd .gitattributes 2>$null
+    & git status --short
+
+    Write-Host ""
+    Write-Host "Expected: .sh is i/lf w/lf and 100755; .cmd is w/crlf and 100644." -ForegroundColor Yellow
+    Write-Host "If the output looks correct, commit the normalization." -ForegroundColor Yellow
 }
 
 while ($true) {
