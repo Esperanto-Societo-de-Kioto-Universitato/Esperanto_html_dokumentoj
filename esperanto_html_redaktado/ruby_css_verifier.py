@@ -37,6 +37,18 @@ import sys
 from collections import Counter
 from datetime import datetime
 
+
+def filesystem_path(path):
+    """Return a Windows extended-length path for long corpus filenames."""
+    if os.name != "nt":
+        return path
+    absolute = os.path.abspath(path)
+    if absolute.startswith("\\\\?\\"):
+        return absolute
+    if absolute.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + absolute[2:]
+    return "\\\\?\\" + absolute
+
 # ─────────────────────────────────────────────────────
 # パス設定
 # ─────────────────────────────────────────────────────
@@ -173,22 +185,89 @@ def build_correct_rt(rt_text_clean, css_class, width_data=None):
 # ─────────────────────────────────────────────────────
 # Ruby パース
 # ─────────────────────────────────────────────────────
+RAW_RUBY_OPEN_RE = re.compile(r'<ruby\b', re.IGNORECASE)
 RUBY_RE = re.compile(
-    r'<ruby>([^<]+)<rt\s+class="([^"]+)">([^<]*(?:<br>[^<]*)*)</rt></ruby>',
-    re.IGNORECASE,
+    r'<ruby\b[^>]*>\s*(?P<rb>[^<]+?)\s*'
+    r'<rt\b(?P<attrs>[^>]*)>(?P<rt>.*?)</rt\s*>\s*</ruby\s*>',
+    re.IGNORECASE | re.DOTALL,
 )
+CLASS_ATTR_RE = re.compile(
+    r'''(?<![\w:-])class\s*=\s*(?:
+        "(?P<double>[^"]*)"
+        |'(?P<single>[^']*)'
+        |\u201c(?P<smart>[^\u201d]*)\u201d
+    )''',
+    re.IGNORECASE | re.VERBOSE,
+)
+BR_RE = re.compile(r'<br\s*/?\s*>', re.IGNORECASE)
+RT_OPEN_RE = re.compile(r'<rt\b(?P<attrs>[^>]*)>', re.IGNORECASE)
+RT_CLOSE_RE = re.compile(r'</rt\s*>', re.IGNORECASE)
+
+
+def count_raw_ruby_opens(content):
+    """Return the number of opening ``<ruby`` tags, independent of case."""
+    return len(RAW_RUBY_OPEN_RE.findall(content))
 
 
 def parse_rubies(content):
-    """全 ruby タグを解析し、(match, rb, css, rt_raw, rt_clean) のリストを返す。"""
+    """Parse supported ruby tags.
+
+    Each result is ``(match, rb, css, rt_raw, rt_clean,
+    needs_class_normalization)``.  ASCII single and double quotes are valid;
+    U+201C/U+201D smart quotes are accepted so ``--fix`` can normalize the
+    invalid HTML attribute quoting.
+    """
     results = []
     for m in RUBY_RE.finditer(content):
-        rb = m.group(1)
-        css = m.group(2)
-        rt_raw = m.group(3)
-        rt_clean = re.sub(r'<br>', '', rt_raw, flags=re.IGNORECASE)
-        results.append((m, rb, css, rt_raw, rt_clean))
+        class_match = CLASS_ATTR_RE.search(m.group("attrs"))
+        if class_match is None:
+            # Keep this out of the parsed count so the raw/parsed gap exposes
+            # unsupported or malformed ruby markup.
+            continue
+
+        quote_kind = class_match.lastgroup
+        css = class_match.group(quote_kind)
+        rb = m.group("rb").strip()
+        rt_raw = m.group("rt").strip()
+        rt_clean = BR_RE.sub('', rt_raw)
+        if '<' in rt_clean or '>' in rt_clean:
+            # Only plain annotation text plus <br>/<BR/> is supported.  Other
+            # nested markup must be reviewed rather than silently measured.
+            continue
+        results.append((m, rb, css, rt_raw, rt_clean, quote_kind == "smart"))
     return results
+
+
+def rebuild_fixed_ruby(match, expected_css, correct_rt):
+    """Rebuild only the rt class/content while preserving all other markup.
+
+    In particular, attributes on ``ruby`` and non-class attributes on ``rt``
+    must survive ``--fix``.  Reconstructing a minimal tag would silently drop
+    data-*, lang, ARIA, or other future metadata.
+    """
+    original = match.group(0)
+    rt_open = RT_OPEN_RE.search(original)
+    if rt_open is None:
+        raise ValueError("parsed ruby unexpectedly lacks an rt opening tag")
+    attrs = rt_open.group("attrs")
+    class_match = CLASS_ATTR_RE.search(attrs)
+    if class_match is None:
+        raise ValueError("parsed ruby unexpectedly lacks a supported class attribute")
+    fixed_attrs = (
+        attrs[:class_match.start()]
+        + f'class="{expected_css}"'
+        + attrs[class_match.end():]
+    )
+    fixed_open = "<rt" + fixed_attrs + ">"
+    rt_close = RT_CLOSE_RE.search(original, rt_open.end())
+    if rt_close is None:
+        raise ValueError("parsed ruby unexpectedly lacks an rt closing tag")
+    return (
+        original[:rt_open.start()]
+        + fixed_open
+        + correct_rt
+        + original[rt_close.start():]
+    )
 
 
 # ─────────────────────────────────────────────────────
@@ -200,18 +279,36 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
+    raw_total = count_raw_ruby_opens(content)
     rubies = parse_rubies(content)
     total = len(rubies)
+    unparsed = raw_total - total
     all_mismatches = []
     fixable = []
     skipped_boundary = []
 
-    for m, rb, actual_css, rt_raw, rt_clean in rubies:
+    for m, rb, actual_css, rt_raw, rt_clean, needs_normalization in rubies:
         expected_css, ratio = calc_css_class(rb, rt_clean, width_data)
-        if actual_css != expected_css:
+        expected_rt = build_correct_rt(rt_clean, expected_css, width_data)
+        actual_class_rt = build_correct_rt(
+            rt_clean, actual_css, width_data
+        )
+        class_mismatch = actual_css != expected_css
+        # Break placement belongs to the class currently carried by the tag.
+        # Even when --margin retains an adjacent boundary class, that retained
+        # class must still have its own exact half/third-width break.
+        break_mismatch = rt_raw != actual_class_rt
+        break_only_mismatch = not class_mismatch and break_mismatch
+        if class_mismatch or needs_normalization or break_mismatch:
             dist = nearest_threshold_distance(ratio)
-            correct_rt = build_correct_rt(rt_clean, expected_css, width_data)
             gap = css_class_distance(actual_css, expected_css)
+            boundary_class = (
+                class_mismatch
+                and not needs_normalization
+                and margin > 0
+                and dist < margin
+                and gap <= 1
+            )
             entry = {
                 "match": m,
                 "rb": rb,
@@ -219,15 +316,33 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
                 "rt_raw": rt_raw,
                 "actual_css": actual_css,
                 "expected_css": expected_css,
-                "correct_rt": correct_rt,
+                "expected_rt": expected_rt,
+                "actual_class_rt": actual_class_rt,
                 "ratio": ratio,
                 "threshold_dist": dist,
                 "class_gap": gap,
+                "needs_normalization": needs_normalization,
+                "class_mismatch": class_mismatch,
+                "break_mismatch": break_mismatch,
+                "break_only_mismatch": break_only_mismatch,
+                "boundary_class": boundary_class,
+                # Default repair target.  A retained boundary class overrides
+                # these below so only its break is normalized.
+                "fix_css": expected_css,
+                "fix_rt": expected_rt,
             }
             all_mismatches.append(entry)
-            # 閾値近傍でも、現在クラスが期待クラスから大きく外れている場合は修正対象に残す。
-            if margin > 0 and dist < margin and gap <= 1:
+            if boundary_class:
                 skipped_boundary.append(entry)
+                if break_mismatch:
+                    entry["fix_css"] = actual_css
+                    entry["fix_rt"] = actual_class_rt
+                    fixable.append(entry)
+            # Smart quotes are invalid HTML attribute delimiters.  Preserve
+            # the established behavior: normalization is fixable even at a
+            # width-ratio boundary and uses the computed class.
+            elif needs_normalization:
+                fixable.append(entry)
             else:
                 fixable.append(entry)
 
@@ -236,23 +351,38 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
     mismatch_ratio = (len(all_mismatches) / total * 100) if total else 0.0
     print(f"\n{'='*70}")
     print(f"  {fname}")
+    print(f"  Raw ruby opens: {raw_total}   Parsed ruby: {total}   Unparsed: {unparsed}")
     print(f"  Total ruby: {total}   Mismatched: {len(all_mismatches)} ({mismatch_ratio:.1f}%)")
+    print(
+        "  Categories: "
+        f"class={sum(e['class_mismatch'] for e in all_mismatches)}  "
+        f"break={sum(e['break_mismatch'] for e in all_mismatches)}  "
+        f"break-only={sum(e['break_only_mismatch'] for e in all_mismatches)}  "
+        f"smart-quote={sum(e['needs_normalization'] for e in all_mismatches)}"
+    )
+    if unparsed:
+        print(f"  WARNING: {unparsed} ruby tag(s) could not be parsed; review their markup.")
     if margin > 0:
         print(f"  Margin: {margin}  Fixable: {len(fixable)}  Boundary(skip): {len(skipped_boundary)}")
     print(f"{'='*70}")
 
     if total == 0:
-        print("  No ruby tags found.")
-        return 0
+        print("  No parseable ruby tags found.")
+        return unparsed
 
     if not all_mismatches:
-        print("  No CSS mismatches found.")
-        return 0
+        print("  No CSS/rt-break mismatches found.")
+        return unparsed
 
     # 表示対象を選択
     if boundary_only:
         display_list = skipped_boundary if margin > 0 else [
-            e for e in all_mismatches if e["threshold_dist"] < 0.05
+            e for e in all_mismatches
+            if (
+                e["class_mismatch"]
+                and not e["needs_normalization"]
+                and e["threshold_dist"] < 0.05
+            )
         ]
         label = "Boundary cases"
     else:
@@ -279,24 +409,51 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
     if len(pair_counts) > limit:
         print(f"  ... and {len(pair_counts) - limit} more (use --verbose)")
 
+    if not boundary_only:
+        break_counts = Counter(
+            (
+                mm["rb"], mm["rt_raw"], mm["actual_class_rt"],
+                mm["actual_css"],
+            )
+            for mm in display_list
+            if mm["break_mismatch"]
+        )
+        if break_counts:
+            print(
+                f"\n  Break-placement mismatches: "
+                f"{sum(break_counts.values())} instances, "
+                f"{len(break_counts)} unique pairs"
+            )
+            for (rb, actual_rt, correct_rt, css), cnt in break_counts.most_common(limit):
+                print(
+                    f"    {cnt:5d}  {rb!r} [{css}]  "
+                    f"{actual_rt!r} -> {correct_rt!r}"
+                )
+            if len(break_counts) > limit:
+                print(
+                    f"    ... and {len(break_counts) - limit} more "
+                    "(use --verbose)"
+                )
+
     # ─── 修正実行 ───
     if fix and fixable:
-        print(f"\n  Applying {len(fixable)} fixes (skipping {len(skipped_boundary)} boundary cases)...")
+        print(
+            f"\n  Applying {len(fixable)} fixes "
+            f"(retaining {len(skipped_boundary)} boundary class decisions)..."
+        )
 
         # バックアップ作成
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = filepath + f".bak_{timestamp}"
-        shutil.copy2(filepath, backup_path)
+        shutil.copy2(filesystem_path(filepath), filesystem_path(backup_path))
         print(f"  Backup: {backup_path}")
 
         # 後ろから置換（位置がずれないように）
         new_content = content
         for mm in sorted(fixable, key=lambda x: x["match"].start(), reverse=True):
             m = mm["match"]
-            new_tag = (
-                f'<ruby>{mm["rb"]}'
-                f'<rt class="{mm["expected_css"]}">'
-                f'{mm["correct_rt"]}</rt></ruby>'
+            new_tag = rebuild_fixed_ruby(
+                m, mm["fix_css"], mm["fix_rt"]
             )
             start, end = m.start(), m.end()
             new_content = new_content[:start] + new_tag + new_content[end:]
@@ -307,21 +464,53 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
         # 修正後の再検証
         with open(filepath, "r", encoding="utf-8") as f:
             verify_content = f.read()
+        post_raw_total = count_raw_ruby_opens(verify_content)
         post_rubies = parse_rubies(verify_content)
+        post_unparsed = post_raw_total - len(post_rubies)
         post_all = 0
         post_within_margin = 0
-        for pm, rb, actual_css, rt_raw, rt_clean in post_rubies:
+        post_break = 0
+        post_break_only = 0
+        for pm, rb, actual_css, rt_raw, rt_clean, needs_normalization in post_rubies:
             expected_css, ratio = calc_css_class(rb, rt_clean, width_data)
-            if actual_css != expected_css:
+            class_mismatch = actual_css != expected_css
+            actual_class_rt = build_correct_rt(
+                rt_clean, actual_css, width_data
+            )
+            break_mismatch = rt_raw != actual_class_rt
+            break_only_mismatch = not class_mismatch and break_mismatch
+            if class_mismatch or needs_normalization or break_mismatch:
                 post_all += 1
+                if break_mismatch:
+                    post_break += 1
+                if break_only_mismatch:
+                    post_break_only += 1
                 dist = nearest_threshold_distance(ratio)
-                if margin > 0 and dist < margin:
+                gap = css_class_distance(actual_css, expected_css)
+                if (
+                    margin > 0
+                    and dist < margin
+                    and gap <= 1
+                    and not needs_normalization
+                    and not break_mismatch
+                ):
                     post_within_margin += 1
 
         post_real = post_all - post_within_margin
-        print(f"  Post-fix: {post_all} total mismatches ({post_within_margin} boundary, {post_real} real)")
-        if post_real == 0:
-            print("  ALL NON-BOUNDARY CSS CLASSES NOW CORRECT!")
+        print(
+            f"  Post-fix ruby coverage: {len(post_rubies)}/{post_raw_total} parsed "
+            f"({post_unparsed} unparsed)"
+        )
+        print(
+            f"  Post-fix: {post_all} total mismatches "
+            f"({post_within_margin} boundary, {post_break} break, "
+            f"{post_break_only} break-only, "
+            f"{post_real} real)"
+        )
+        if post_real == 0 and post_unparsed == 0:
+            print("  ALL NON-BOUNDARY CSS CLASSES AND RT BREAKS NOW CORRECT!")
+        elif post_unparsed:
+            print(f"  WARNING: {post_unparsed} ruby tag(s) remain unparsed after fixing.")
         print(f"  Fixed: {filepath}")
     elif fix and not fixable:
         if skipped_boundary:
@@ -329,7 +518,9 @@ def verify_file(filepath, fix=False, verbose=False, margin=0.0, boundary_only=Fa
         else:
             print("\n  No mismatches to fix.")
 
-    return len(all_mismatches)
+    # A raw/parsed gap is a structural verification failure, not merely a
+    # warning.  It must contribute to both the per-file and CLI exit status.
+    return len(all_mismatches) + unparsed
 
 
 def main():
@@ -383,7 +574,8 @@ def main():
         if args.margin == 0:
             print("  Recommended: --fix --margin 0.05 (skip boundary cases)")
     print(f"{'='*70}\n")
+    return 1 if total_mismatches else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
