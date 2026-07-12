@@ -120,6 +120,11 @@
        该脚本实现了与 §2.3 相同的像素宽度计算算法。
        · 推荐命令: python3 ruby_css_verifier.py *.html --fix --margin 0.05
        · --margin 0.05 跳过境界情况（ratio 距阈值0.05以内）
+       · 即使CSS类一致，也会将实际rt与按当前类生成的规范rt
+         （build_correct_rt）进行对照，把<br>数量、<br>/<BR>等大小写写法、
+         1/2或1/3·2/3处的位置差异作为独立错误进行检测·修正
+       · 即使--margin保留境界情况的CSS类，仍会按所保留的当前类检查规范
+         换行位置；此时只修正换行，不更改CSS类
        · 备份文件会自动创建
   (f) 新增ruby时，若同一 (rb, rt) 配对在文件中已存在，
       直接使用该现有类。
@@ -290,7 +295,10 @@ CSS类由「rt侧像素宽度 ÷ rb侧像素宽度」的比率（ratio）决定�
     - 句首的"La"很常被遗漏
 
 (B) 专有名词（地名·人名）
-    - 固有名词须以名词单位添加一个ruby，并标注[人名][地名]等标签
+    - 首先区分“名字本体”与规则的世界语语法词尾
+    - 名字本体不得拆成伪词根，须以专名单位添加ruby，并标注[人名][地名]等标签
+    - 真正的语法词尾置于rb外（Japan/io, Uson/o 型）；词尾属于名字拼写的
+      Tokio, Meiĵi 等则按whole处理
 
 (C) 功能词·小品词
     - eĉ（甚至）、ĉi（此）、nu（嗯）、do（那么）、ja（确实）
@@ -317,7 +325,9 @@ CSS类由「rt侧像素宽度 ÷ rb侧像素宽度」的比率（ratio）决定�
 (G) 国名·民族名的形容词形（过度分解的防止）
     - ĉina（中国的）, japana（日本的）, nederlanda（荷兰的）等
     → 国名系词根应以对应的国名作为ruby注释
-    → japana, ĉina 等避免过度分解，必要时整词作1个ruby
+    → 按 ĉin/a, japan/a, nederland/a 处理：词根置于ruby，语法词尾作裸文本
+    → 只有题名、团体名等直接指称该实体的用法，或依对译·上下文可确认
+      末尾字母属于名字本体时，才允许整词作whole ruby
     → 与§10模式1（过度分解的整合）联动检查
 
 (H) 复合词的部分遗漏
@@ -862,9 +872,37 @@ CSS类由「rt侧像素宽度 ÷ rb侧像素宽度」的比率（ratio）决定�
   Tiba      : Tib+a（把-a当作形容词词尾） × → [地名]千叶（名词用法，词尾-a是名字的一部分）
   Barato系  : bar(障碍)+at(被动进行)+a × → barat(印度)+a
   ※ 借词同型例: platformo 不得拆为 plat(扁平)+form(形状)+o（单一词根 platform）。
-  ※ 名字词尾即使是 -i/-a/-o，若上下文为名词（介词宾语·同位语）则不得按词尾分解
-    （Antoni·Tiba 型）。反之 Blis/a（布利斯文字）·Kanto/a（关东+形容词词尾）等
-    实为形容词用法时分离才是正确的。务必依对译·上下文判断。
+  ※ 不得仅凭“句法上作为名词使用”来判断词末属于名字本体还是语法词尾。
+    人名、称号、团体名、语言名、题名等直接实体，其名字本体按 whole 处理；
+    地名则须判断词末是“原拼写·固定名称本体”还是“世界语中追加的能产词尾”。
+    原拼写·固定名本体: Tokio、Kioto、Brno、Mindanao、Antananarivo、Kongo、Oslo、Samoa（whole）。
+    能产词尾: Butan/o、Namur/o、Vuhan/o、Kanad/o、Barcelon/o、Alp/oj、Melburn/o、Nagasak/o。
+    普通词、派生词、形容词用法仍正常拆分: fraŭl/in/o、psik/o、Antarkt/a、vien/a、kod/o。
+    Antoni·Tiba 型与 Blis/a·Kanto/a 型之差，须综合对译、实体类别、原拼写及同文档用法判断。
+
+■ 世界语化专名与语法词尾的边界（上下文优先）
+  “专有名词按整体处理”的原则只用于防止把名字本体误拆成伪词根，
+  不得据此把真正的世界语语法词尾也并入名字本体。
+  → 规则词根后接能产的语法词尾时，词根置于 ruby，词尾保留为裸文本。
+    例: Vien/o、Di/o、Ĉin/io、Ital/io、Vroclav/a、Butan/o、Barcelon/o
+  → 须全量检查 whole ruby 词末的 -io/-ion。民族名、国名型应拆为
+    Japan/io、Sovet/io（形容词 sovet/ia）、Vjetnam/io、Kore/io、Slav/io、
+    Iber/io、Bohem/io、Etiop/io、Kroat/io、Pomer/io、Ĉeĥ/io、Slovak/io、
+    Kartvel/io、Rus/io、Ukrain/io、Norveg/io、Katalun/io/n。
+    即使是固定长词根，语法词尾 o、n 也须置于 rb 外: Eŭrazi/o、Kaliforni/o/n、kriptografi/o。
+    复合地名按各词根拆分: Mez/azi/o。
+  → 但 io/kio/tio/ĉio/nenio（相关词）、Tokio（原拼写地名）、
+    Konfucio、Semio、Joŝio、Hoŭ-Ĉio（人名）、bio（构词成分）、radio（广播词根）
+    的 -io 属于词根或名字本体，须保持 whole。
+    -ion 也不一定是 Kaliforni/o/n 式词尾；milion、spion、komision 等的 -ion 属于词根本体。
+  → 名字拼写本身所含的末尾元音或辅音须保留在名字本体内，不得误判为词尾。
+    例: Monika、Aŭdu、Sin（人名），Tokio、Kioto、Brno、Mindanao、Samoa（地名）
+  → 书名、文章标题、杂志名等直接指称题名实体时，允许使用 whole ruby。
+    例: 《VOJAĜO》、杂志《Kontakto》。须依据 rt 分类及对译确认实体用法。
+  → 仅有引号并不足以构成实体用法；若为普通名词，仍须按通常规则分解。
+    例: 引号中的 “Futbalo” 若表示运动项目，也应处理为 Futbal/o。
+  → 不得只凭大写、引号或词尾字形判断；须核对对译、句法功能及同一文档中的用法。
+  → 拼写相近的 radio（广播、收音机）与 radi/o（光线、放射线）须按语义区分。
 
 ■ 中国人名·中文拼音的误分解
   Gao Tzong  : Gao+T+zon(带)+g × → [人名]高宗
@@ -1223,8 +1261,10 @@ CSS类由「rt侧像素宽度 ÷ rb侧像素宽度」的比率（ratio）决定�
   接合部的异常模式（须修正）:
     (A) 独立词的泄出: ĉi, eĉ, mi, ni, ĝi, vi 等以裸文本出现
         → 应ruby化
-    (B) 专有名词的碎片化: japana, ĉina, Japanio, Tokio 等
-        → 应整体ruby化
+    (B) 专有名词本体的碎片化: Tokio, Meiĵi, 人名·题名的一部分等
+        → 应合并到正确的专名单位
+        → japan/a, ĉin/a, Japan/io 中的 a、io 是真正的语法词尾，
+          属于正常裸文本；不得整词whole化，只修正词根 japan、ĉin 的ruby遗漏
     (C) 词尾的过度切断: s, k, ek, toj, ante 等
         → 应将词根边界移至正确位置
 
@@ -1282,7 +1322,9 @@ ruby标签外残存的字母文本的分类标准。
   (6) 指示词: ĉi
   (6b) 相关词及其屈折形: io, ion, iu, iun, ia, ie, iel, iam, iom, ial
        以及tiu系·kiu系·ĉiu系·neniu系的全形（§7.5参照）
-  (7) 国名系词·专有名词
+  (7) 国名系词根·专有名词本体: japan（japan/a, Japan/io）、
+      ĉin（ĉin/a, Ĉin/io）、Tokio、Meiĵi 等。
+      规则语法词尾 a、io 等按(1)可置于rb外
   (8) 其他2字符以上的世界语词根
 
 ■ 著者意图的非标准文本（拟声·拉长音·伸长 等）
@@ -1328,10 +1370,11 @@ ruby标签外残存的字母文本的分类标准。
 【模式1: 过度分解的整合】（最重要·最频繁）
 ────────────────────────────────────────────────────────────────────────────────
 
-  检测: ruby密度超过100%的位置
+  检测: ruby密度超过100%的位置，以及专名本体·国名词根·不可分外来词被拆成伪词根的位置
   修正:
-    - 停止专有名词的词根分解，以全名做1个ruby
-    - 停止国名形容词的词根分解
+    - 停止专名本体的伪词根分解，合并到全名等正确实体单位
+      （真正的语法词尾仍按§6.3置于rb外）
+    - 国名形容词（japan/a, ĉin/a等）只将国名词根置于ruby，词尾a作裸文本
     - 停止不可分解外来词（galaksio 等）的词根分解
   密度指标: 正常范围为84%～90%。超过100%即为过度分解的信号。
 
@@ -1431,6 +1474,52 @@ G5. 空标签不存在
   - empty_rb == 0
   - empty_rt == 0
 
+G6. 裸词coverage门控（覆盖全部HTML）
+  - 从工作区根目录执行下列命令，并要求退出码为0:
+      python _analysis_20260625/bare_word_audit.py --require-zero
+  - 文档核算必须为 169 = 注释对象123 + 合法zero-ruby排除46。
+    zero-ruby 46的明细为 navigation/index 17、Gerda plain-source 28、
+    bilingual plain-source 1。出现任何未预期zero-ruby文档即Fail。
+  - 词语检测须按完整词处理，不得仅限ASCII；应包含Latin Extended、组合字符及
+    混合Cyrillic。严禁把 Oświęcim→cim、Universität→Universit、
+    Китейаŭa→ŭa 之类碎片登记为review。
+  - ruby相邻文本须区分位置。允许词末合法裸词尾、ruby之间的单一词尾
+    o/a/e/i/n/j/jn，以及方向副词的 e+n（字面为 en）。as/is/os/us 必须ruby化。
+    国名形成等场合，词根后的 io/ia 及其屈折形
+    (ion/ian/ioj/iojn/iaj/iajn)也作为裸词尾；独立相关词则必须ruby化。
+    ruby之前的词及其他ruby间字符串必须保留为候选。
+  - review排除表使用 schema_version 2；每项必须具有 exact path、token、lines、
+    expected_count、category、reason。禁止 path="*" 等通配符。
+    登记行未被使用或实际出现数与 expected_count 不符时必须Fail。
+    因此，同一token日后出现在新行时，不会被旧review错误隐藏。
+  - 仅已确认的外语引用、发音/语法记号、来源署名、地址、navigation等可review。
+    专名、缩略语、独立世界语词及词根遗漏不得用review规避。
+
+G7. 全ruby typed signature・应用程序no-worsening门控
+  - 从工作区根目录明确指定固定的已审计gold snapshot及目标HTML repo，
+    执行以下命令并要求全部退出码为0:
+      $env:ESP_GOLD_PATH = '<已审计snapshot>'
+      $env:ESP_CORPUS_PATH = '<目标京大HTML repo>'
+      $hash = '<snapshot的SHA-256>'
+      python _analysis_20260625/verify_no_worsening_parser_equivalence.py
+      python _analysis_20260625/no_worsening_audit.py --references-only --expected-gold-sha256 $hash
+      python _analysis_20260625/no_worsening_audit.py --current-only-diagnostic --languages JA ZH KO --expected-gold-sha256 $hash
+      python _analysis_20260625/no_worsening_audit.py --languages JA ZH KO --expected-gold-sha256 $hash
+  - 本次审计固定的gold SHA-256为
+    BBD305D033570D7C2FE8804BF874E6D22FF3DE5A9B8B9A316733EF2990FBCB73。
+    不得以不同内容、读取中的snapshot或旧checkpoint代替。
+  - 比较单位不只保留拼写，还必须保留大小写、空格、连字符及各span的
+    ruby/裸文本角色，即typed signature。
+  - 全169文档必须满足 raw ruby数 == 已解析ruby数、与独立tokenizer的counter差0、
+    所有含ruby单位的 excluded_units == 0。不得把多词专名、缩略语、
+    Latin Extended等以“应用词表外”为由排除。
+  - `_no_worsening_scope_manifest.json` 与
+    `_no_worsening_reference_conflicts.json` 按参照schema v3固定；
+    每项冲突须人工填写 allowed_signatures、category、reason。
+    scope、冲突、corpus HEAD/status、应用全输入任一fingerprint不符即Fail。
+  - current-only不仅检查“未恶化”，现输出只要存在1项参照外错误也须Fail。
+    最终证明必须完整执行JA/ZH/KO三语言的三相比较。
+
 ────────────────────────────────────────────────────────────────────────────────
 11.2 推荐门控（作为警告审查）
 ────────────────────────────────────────────────────────────────────────────────
@@ -1444,7 +1533,8 @@ W1. 词尾异常率
 
 W2. 接合部异常词
   - ruby间是否出现独立词（mi, vi, ne, ĉi, eĉ等）
-  - ruby间是否出现专有名词碎片
+  - ruby间是否出现专名本体碎片（人名·题名的一部分等）
+  - 是否把 Japan/io 等正当语法词尾误判为专名碎片
 
 W3. ruby密度范围
   - 按章·课为粒度，计算 ruby密度（ruby标签数 ÷ 词数 × 100）
@@ -1489,14 +1579,16 @@ W6. ruby_css_verifier.py 的CSS批量验证
 ────────────────────────────────────────────────────────────────────────────────
 
   Step 1: 执行必须门控G1～G5 → NG则立即修正
-  Step 2: ruby_css_verifier.py 批量CSS验证（W6）
-  Step 3: 测量词尾异常率W1
-  Step 4: 检知接合部异常词W2
-  Step 5: 测量ruby密度范围W3
-  Step 6: 确认类统一W4
-  Step 7: 执行跨语言·参照文件一致性 W5
-          （有多语言版本或对译版本 *_du-lingva.html 等时）
-  Step 8: 最后重新执行G1～G5做最终确认
+  Step 2: bare_word_audit.py --require-zero 对全部HTML执行G6
+  Step 3: 执行parser独立核对、参照固定及三语言比较G7
+  Step 4: ruby_css_verifier.py 批量CSS验证（W6）
+  Step 5: 测量词尾异常率W1
+  Step 6: 检知接合部异常词W2
+  Step 7: 测量ruby密度范围W3
+  Step 8: 确认类统一W4
+  Step 9: 执行跨语言·参照文件一致性 W5
+           （有多语言版本或对译版本 *_du-lingva.html 等时）
+  Step 10: 最后重新执行G1～G7做最终确认
 
 ================================================================================
 12. 综合检查清单
@@ -1531,13 +1623,18 @@ W6. ruby_css_verifier.py 的CSS批量验证
   □ 介词·连词·副词为独立ruby，注释遵循 §7.4 词典
   □ 相关词以整词为1个ruby，注释遵循 §7.5 词典
   □ 外来词未被误分解
+  □ 全169文档已核算为「注释对象123 + 合法zero-ruby 46」
+  □ bare_word_audit.py --require-zero 连同exact review表一起PASS
+  □ review表中无通配符、未使用行或 expected_count 不一致
 
 ────────────────────────────────────────────────────────────────────────────────
 【D. 专有名词】
 ────────────────────────────────────────────────────────────────────────────────
-  □ 专有名词未被作为世界语词根分解
-  □ 以全名或专有名词单位合并为1个ruby，
+  □ 专名本体未被拆成伪世界语词根
+  □ 全名或作为实体的专名本体以适当单位ruby化，
     标注[人名][地名][团体][语言名][刊物]等标签
+  □ Japan/io、Ĉin/io、Vroclav/a等真正语法词尾位于rb外，
+    Tokio、Monika等属于名字本体的末尾字母位于rb内
   □ 国名词根的注释中未附加「人」（angl=英国, 非 英人）
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -1602,11 +1699,17 @@ W6. ruby_css_verifier.py 的CSS批量验证
   □ 连字符在敬称(s-ro等)·专有名词以外未包含在rb内
 
 ════════════════════════════════════════════════════════════════════════════════
-【附记】与应用程序(词根分解·注音ruby·汉字化)的一致性核对  2026-07-04
+【附记】与应用程序(词根分解·注音ruby·汉字化)的一致性核对  2026-07-12
 ════════════════════════════════════════════════════════════════════════════════
 
-对京都大学世界语研究会HTML文档群(全123篇注音文档)与应用程序的词根分解机制进行了
-全量核对(边界一致率约99.7%·100%一致文档70篇)，确认并统一如下。
+本次严格复审把范围固定为全部169篇文档
+(注音对象123 + 合法zero-ruby文档46)。最终HTML的raw/已解析ruby均为348,980，
+含ruby的词单位为271,057，与独立tokenizer的差为0。
+多词专名、缩略语、Latin Extended等不以“应用词表外”为由排除，
+共1,186次、426个表层形纳入extended reference(excluded_units=0)。
+语料内部仅剩8个分解差异表层形，均为普通词与题名、团体名等的上下文差异。
+旧“约99.7%”“100%一致文档70篇”的统计不再作为最终证明；
+现以§11.1 G7的typed signature全量门控作为唯一合否标准。
 
 ■ 同形异义词(§4.2/§3.4表)的主义项选择
   应用程序在主注释(CSV)中采用 gold词典(世界语全部单词…学习者版)的【第一义】。
@@ -1625,3 +1728,11 @@ W6. ruby_css_verifier.py 的CSS批量验证
 
 ■ 伪分解列表(§4.1)经应用程序确认正确整体化
     diskriminaci=歧视, futbal=足球, kampus=校园, rokenrol=摇滚乐 ✓
+
+■ 不得混淆 gold 的“##伪分解”与HTML词根审计
+    ・Akademia Vortaro 将 AROGANT/（Fundamento）、BIOLOGI/、FIZIOLOGI/（1OA）列为正式长词根。
+      因此HTML中的 arogant/aĵ/o、biologi/o、fiziologi/a 是正确的词根分解。
+    ・gold中的 arog/ant/aĵ/o、bio/logi/o、fizi/o/logi/a 是带“##伪分解”标记、仅供汉字分配使用的深层拆分，
+      不得提升为注音ruby的词根边界；它不是粗粒度例外，而是用途不同的有意拟制拆分。
+    ・全语料审计应把 ##伪分解（含 ##伪分解(PIV正式分解)）送入专用分类，
+      从HTML词根错误候选中排除；只有无此标记的普通gold分解才进入机械一致性比较。
