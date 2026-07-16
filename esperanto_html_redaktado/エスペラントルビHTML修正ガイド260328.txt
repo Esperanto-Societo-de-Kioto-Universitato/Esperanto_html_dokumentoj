@@ -1462,8 +1462,10 @@ G7. 全ルビtyped signature・アプリno-worseningゲート
       python _analysis_20260625/no_worsening_audit.py --references-only --expected-gold-sha256 $hash
       python _analysis_20260625/no_worsening_audit.py --current-only-diagnostic --languages JA ZH KO --expected-gold-sha256 $hash
       python _analysis_20260625/no_worsening_audit.py --languages JA ZH KO --expected-gold-sha256 $hash
-  - 現監査で固定したgold SHA-256は
-    BBD305D033570D7C2FE8804BF874E6D22FF3DE5A9B8B9A316733EF2990FBCB73。
+  - 現監査で固定したPhase513学習者版gold SHA-256は
+    1435F5B1CD1B0BB8224521A8262E3CA740B07B7523E805545A4E3CA7447A286C、
+    同一行対応の学術版（粗い注釈ruby authority）は
+    4C813C48B3C4919601FA51E25B6AA3628A0A6793A39C49F1DDFB22A9112E1A0A。
     別内容・読み取り途中のsnapshotや、旧checkpointを代用してはならない。
   - 比較単位は綴りだけでなく、大小文字・空白・ハイフンと各spanの
     ruby/裸テキスト役割を保持したtyped signatureとする。
@@ -1471,7 +1473,7 @@ G7. 全ルビtyped signature・アプリno-worseningゲート
     rubyを含む全単位の excluded_units == 0 を必須とする。複数語・略語・
     Latin Extended等を「アプリ語彙外」として除外してはならない。
   - `_no_worsening_scope_manifest.json` と
-    `_no_worsening_reference_conflicts.json` は参照schema v3で固定し、
+    `_no_worsening_reference_conflicts.json` は参照schema v5で固定し、
     全競合に allowed_signatures・category・reasonを人手記録する。
     scope、競合、corpus HEAD/status、アプリ全入力のfingerprint不一致はFailとする。
   - current-onlyは「以前より悪化していない」だけでなく、現出力の参照外誤りを
@@ -1609,19 +1611,19 @@ W5. ruby_css_verifier.py によるCSS一括検証
   □ ハイフンが敬称(s-ro等)・固有名詞以外でrb内に含まれていない
 
 ════════════════════════════════════════════════════════════════════════════════
-【補記】アプリ(語根分解・注釈ルビ・漢字化)との整合性すり合わせ  2026-07-12
+【補記】アプリ(語根分解・注釈ルビ・漢字化)との整合性すり合わせ  2026-07-15
 ════════════════════════════════════════════════════════════════════════════════
 
 今回の厳密再監査では対象を全169文書
 (注釈対象123 + 正当なzero-ruby文書46)として固定した。最終HTMLは
-raw/parse済みruby 348,980、rubyを含む語単位271,057で、独立tokenizerとの差0。
+raw/parse済みruby 348,971、rubyを含む語単位271,065で、独立tokenizerとの差0。
 通常のアプリ語彙外に見える複数語・略語・Latin Extended等も除外せず、
 1,186出現・426表層形をextended referenceとして収録した(excluded_units=0)。
 文書群内部の分解揺れは8表層形だけで、すべて普通語/題名・団体名等の文脈差である。
 旧来の「約99.7%」「100%一致文書70」という集計は最終証明に用いず、
 現在は§11.1 G7のtyped signature全数ゲートを唯一の合否基準とする。
 
-■ 同形異義語(§3.4末尾表)の主義選択について
+■ 同形異義語(§3.4末尾表)の主たる語義の選択について
   アプリは gold辞書(世界语全部单词…学習者版)の【第一義】を主注釈(CSV)に採用する。
   ガイド表の「意味1/意味2」はいずれも正当だが、どちらを主とするかは gold第一義に従う:
     kod=法典(第一義。暗号/コードは第二義以降)   art=技術(第一義。芸術は第二義)
@@ -1651,3 +1653,65 @@ raw/parse済みruby 348,980、rubyを含む語単位271,057で、独立tokenizer
       注釈rubyの語根境界へ昇格させない。粗い例外ではなく、用途の異なる意図的な疑似分割である。
     ・全コーパス監査では ##偽分解（##偽分解(PIV正式分解) を含む）を専用カテゴリへ送り、
       HTML語根誤り候補から除外する。マーカーなしの通常gold分解だけを機械的な一致候補として比較する。
+
+■ Phase513固定snapshotとの二軌道すり合わせ（2026-07-15）
+    ・学習者版・学術版はいずれも62,313行。偽分解指定3,492行のdeep境界は漢字トラックに
+      保持する。注釈rubyは学術版を粗い境界の基準とし、PEJVO原典・京大HTMLと照合する。
+    ・注釈rubyの境界はJA/ZH/KOで必ず同一とする。訳語やCSSクラスが異なっても、
+      原語表層のruby区間／裸文字区間を言語別に変えてはならない。
+    ・Phase511起点のruby-track exact閉集合21項目（うちstrict追加17項目）は
+      `exact_only` / `case_sensitive` /
+      `ruby_track_only` で限定する。一般語根規則へ昇格せず、漢字側の偽分解を変更しない。
+      同綴2義で入力文脈から判別不能な kalozo だけは、片方の義を消さず2義を併記する。
+    ・nitratoはJA/ZH/KO三言語の既存語単位context keyだけで語義を確定する。
+      plain nitrat規則を追加して nitrata acido / sennitratigo まで粗くしてはならない。
+    ・ルビ長は元のアルファベット文字数のおおむね2倍以内を表示上の目安とする。
+      これはCSS・改行・訳語選択の検査基準であり、幅を短くする目的で語根を細分化しない。
+    ・3アプリの char_widths.json は1,122,864 bytes、SHA-256
+      AC009C26AF1D7FAE05E8969D86042B5BAFF5F482B226C575E1CEF8D27AEA2C7B
+      で一致する。京大HTML正本はcommit b769038ef15346a536ce93721d6f0f46849db0ea。
+
+■ 認証済みPhase513と更新中masterの隔離（2026-07-16）
+    ・本補記の認証対象は、上記SHA-256で固定したPhase513 snapshotだけである。
+      live masterは更新を継続しており、Phase514以降（監査時点の最新Phase番号を問わず）の
+      累積差分は未吸収・未認証とする。生成途中で新旧masterを混在させず、次回pin時に
+      snapshot固定→累積差分裁定→regen→全ゲート再走の順で取り込む。
+    ・学習者版の偽分解指定3,492行は漢字トラックのdeep境界として保持する。
+      注釈rubyは学術版を粗境界の基準とし、PEJVO原典・京大HTMLと照合する。
+      漢字側のdeep境界を注釈rubyへ機械伝播してはならない。
+    ・注釈rubyでは、JA/ZH/KOの原語表層に対するruby区間／裸文字区間を完全一致させる。
+      境界不一致は1件でもrelease gateをFailとする。訳語および文字幅に応じたCSSクラスの
+      言語差は、この境界差とは区別する。
+    ・正式再生成は `--ruby-only` / `--all-tracks` の明示を必須とする。Ruby-onlyでは
+      漢字書込工程を除外し、配備済み漢字成果物9本のSHA-256不変を各工程後に検査する。
+    ・ruby長は元のアルファベット文字数のおおむね2倍以内を表示上の目安とする。
+      超過だけで語根境界の誤りとは断定せず、まず訳語、実効文字幅、CSS、改行を検査する。
+      幅を短くする目的で語根を細分化してはならない。
+    ・京大HTML commit b769038ef15346a536ce93721d6f0f46849db0ea の
+      原表層大小文字を保持した正式境界比較では、安全にアプリ出力を復元できた
+      147,927出現が147,927/147,927一致し、不一致0だった。安全に復元できない
+      2,419出現は一致扱いせず比較対象外として別計上する一方、G7 typed-signature監査では
+      全語単位を対象とし excluded_units=0 を要求する。
+    ・Phase513のfull-runtime正式再走では、入力62,313行からコメント202行を明示除外し、
+      runtime候補62,111行をJA/ZH/KOすべてで評価した（未評価0）。render union
+      62,299表層の三言語境界不一致、runtime error、可視文字列不一致、placeholder残留はすべて0。
+      全入力fingerprintとtracked worktreeは終始不変で、complete=true / gate=trueだった。
+    ・偽分解指定3,492行は各言語でauthority一致910／不一致2,582。段階的に裁定済みの
+      transition 158行は一致910の内数で、各言語158/158一致した。不一致2,582行は
+      未裁定キューであり、合格扱いにも一括強制にもせず、語義・京大HTML・日中韓境界を
+      個別確認してから閉集合へ追加する。
+      上記gate=trueはstaged transition等の現段階の正式ゲート合格を表し、3,492行すべての
+      粗境界一致認証ではない（all_fake_coarse_gate=false / all_fake_coarse_enforced=false）。
+    ・原アルファベット文字数との単純比が2倍を超えるunique review指標はJA 199、ZH 78、
+      KO 329（行重み付きJA 202、ZH 78、KO 330）。
+      一方、CSSと実文字幅を反映した実効幅2倍超は3言語とも0で、最大値はJA 1.533750、
+      ZH 1.366875、KO 1.104375、幅字形欠落0だった。単純比警告を隠さず、警告を減らすための
+      語根細分化も行わない。正式report SHA-256は
+      8E0E8568A80A985178C69004CBDBE039422D9368DADA8ABD02906627C46C0201。
+      中断レポートまたはinputs_stable/gateが偽のレポートを合格証跡に用いない。
+    ・上記8E0E…はPhase513 Ruby-only一括再生成時の証跡である。最新app main
+      8fbe3e4488b972de9cad6cce76f3ce1e78c61b86への統合後、branch
+      f441172dcfd533eed9b5b31977a37df58717af6eを対象に同じfull-runtime監査を再走し、
+      同じ会計・不一致0・実効幅超過0を再現した。再走report SHA-256は
+      183A4576864ED9985D35CB15B5AF11AC3655898324A3BA1000ABC42168C91CBDで、
+      report内HEAD一致、complete=true / gate=true / inputs_stable全項目trueだった。
