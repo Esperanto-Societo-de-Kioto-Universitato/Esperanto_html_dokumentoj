@@ -274,6 +274,25 @@ def main():
             if want not in m.group(2):
                 bad_badge.append((idx.relative_to(ROOT), m.group(1), st))
 
+    # D. バッジのCSSが実際に届いているか
+    # 付与したclassがどのCSSにも定義されていないと、バッジは無装飾の素のテキストとして
+    # 表示される。HTMLだけ見ても気づけないので、リンク先のCSSまで辿って確認する。
+    bad_css = []
+    for idx in sorted(ROOT.rglob('index.html')):
+        html = idx.read_text(encoding='utf-8', errors='replace')
+        used = set(re.findall(r'class="([^"]*\btr-[\w-]+[^"]*)"', html))
+        if not used:
+            continue
+        names = {c for u in used for c in u.split() if c.startswith('tr-')}
+        css = '\n'.join(re.findall(r'<style\b[^>]*>(.*?)</style>', html, re.S | re.I))
+        for href in re.findall(r'<link[^>]+href="([^"]+\.css)"', html):
+            p = (idx.parent / href).resolve()
+            if p.exists():
+                css += p.read_text(encoding='utf-8', errors='replace')
+        missing = sorted(n for n in names if f'.{n}' not in css)
+        if missing:
+            bad_css.append((idx.relative_to(ROOT), missing))
+
     print(f"検査対象: 本文HTML {len(state)} 件")
     print(f"  ルビ+和訳 {sum(1 for v in state.values() if v == 'yes')} / "
           f"ルビのみ {sum(1 for v in state.values() if v == 'no')} / "
@@ -289,8 +308,11 @@ def main():
     print(f"C. 3文以上の塊     : {len(bad_clump)} 件")
     for rel, ns, avg, head in bad_clump[:20]:
         print(f"     {rel}  {ns}文/平均{avg}字  {head}")
+    print(f"D. バッジCSSの欠落 : {len(bad_css)} 件")
+    for rel, miss in bad_css[:20]:
+        print(f"     {rel}: {', '.join(miss)} がどのCSSにも無い")
 
-    total = len(bad_title) + len(bad_badge) + len(bad_clump)
+    total = len(bad_title) + len(bad_badge) + len(bad_clump) + len(bad_css)
     print()
     print(f"違反合計: {total} 件")
     if args.require_zero and total:
