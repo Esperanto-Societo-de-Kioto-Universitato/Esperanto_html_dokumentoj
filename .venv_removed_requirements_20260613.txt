@@ -1,0 +1,16 @@
+# Virtual environment removed from synced Google Drive
+# created_at = 2026-06-13T09:40:10
+# removed_env = 20_エスペラント・語学/プロジェクト・旧ルートフォルダ/Esperanto_HTML文書/京大エス研html文書＿Github＿実際にHTMLを作成する場所_クラウド用意外と使わないかも/.venv
+#
+# pyvenv.cfg
+home = /usr/bin
+implementation = CPython
+uv = 0.7.3
+version_info = 3.12.3
+include-system-site-packages = false
+seed = true
+#
+# package_snapshot_method = pip-freeze
+# pip freeze exit_code = 0
+
+
