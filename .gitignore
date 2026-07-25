@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+
+# 作業時の一時ファイル（誤コミット防止）
+*scratchpad*
+*AppDataLocalTemp*
