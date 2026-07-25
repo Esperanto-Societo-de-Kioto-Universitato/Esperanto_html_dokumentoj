@@ -211,11 +211,16 @@ def analyze(path):
         sents = eo_sentences(s)
         if len(sents) < MIN_SENT:
             continue
-        # 段落全体が ** … ** で囲まれているブロックは分割対象外。
-        # このコーパスでは ** は <strong> に変換されずリテラル文字として表示されるため、
-        # 文で割ると開始の ** と終了の ** が別の表示行に分かれ、
+        # 段落全体が ** … ** や * … * で囲まれているブロックは分割対象外。
+        # このコーパスでは ** / * は <strong>/<em> に変換されずリテラル文字として
+        # 表示されるため、文で割ると開始の印と終了の印が別の表示行に分かれ、
         # 間の行には印が無いという崩れた見た目になる。
-        if any(x.count('**') % 2 for x in sents):
+        # ただし行頭の箇条書き「* 」や脚注番号「*³」は元から1個で完結しているので、
+        # 「ブロック全体では対なのに割ると片方だけになる」場合に限って対象外とする。
+        whole = text_of(s)
+        if any(f(whole) % 2 == 0 and any(f(x) % 2 for x in sents)
+               for f in (lambda t: t.count('**'),
+                         lambda t: t.replace('**', '').count('*'))):
             continue
         total = sum(len(x) for x in sents)
         avg = total // len(sents)
