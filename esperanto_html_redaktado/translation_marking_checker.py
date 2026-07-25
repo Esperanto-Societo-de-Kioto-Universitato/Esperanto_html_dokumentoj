@@ -92,6 +92,8 @@ def kind_of(seg):
 
 CLOSERS = '"”»)’\'』」）'
 HAS_WORD = re.compile(r'[0-9A-Za-zĉĝĥĵŝŭĈĜĤĴŜŬ぀-ヿ一-鿿가-힣]')
+# 写真キャプション末尾の頁参照。例: (p.19) （p.8-9） (p. 21)
+PAGEREF = re.compile(r'[(（]\s*[a-zA-Z]?\s*\.?\s*\d+(?:\s*[-–]\s*\d+)?\s*[)）]')
 
 
 def _rendered(s):
@@ -168,6 +170,13 @@ def eo_sentences(seg):
             merged[-1] += p
         else:
             merged.append(p)
+    # 末尾の頁参照 '(p.19)' も1文と数えない。
+    # 写真キャプションは原文・訳文とも末尾に同じ頁参照を持つため、
+    # 切り出すと「(p.19)」だけの行が2行続けて表示されてしまう。
+    # 分割を適用する側と同じ規則にしないと、検査だけが違反を報告する。
+    if len(merged) >= 2 and PAGEREF.fullmatch(merged[-1].strip()):
+        last = merged.pop()
+        merged[-1] += last
     return merged
 
 
