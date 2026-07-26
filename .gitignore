@@ -5,3 +5,11 @@ __pycache__/
 # 作業時の一時ファイル（誤コミット防止）
 *scratchpad*
 *AppDataLocalTemp*
+
+# 原資料（Revuo Orienta のスキャンPDF等）はリポジトリに含めない。
+# 2026-04-04 に _originalaj_materialoj/ が誤ってコミットされ、10分後に削除されたが
+# blobは履歴に残り続け、21.6MB（pack全体の約3分の2）を占めていた。
+# 2026-07-26 に履歴を書き換えて除去済み（33.7MiB → 6.1MiB）。同じ事故を繰り返さないための予防。
+# 意図してPDFを追加したい場合は git add -f で個別に上書きできる。
+_originalaj_materialoj/
+*.pdf
