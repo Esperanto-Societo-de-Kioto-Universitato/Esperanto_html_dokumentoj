@@ -260,7 +260,13 @@ def main():
         title = t.group(1).strip() if t else ''
         says = title_says(title)
         want = {'yes': 'yes', 'plain': 'yes', 'no': 'no', 'ko': None}[st]
-        if want is not None and says != want:
+        if want is None:
+            # 韓国語訳版には和訳有無の定型表記が無いので want を決められない。
+            # ただし「日本語訳付き」「日本語訳なし」等が付いていたら読者を誤らせるので弾く。
+            # (want=None を素通りさせていた旧版は、KO版のtitleを一切検査していなかった)
+            if says is not None:
+                bad_title.append((rel, f'韓国語訳版なのに title が和訳有無({says})を主張', title))
+        elif says != want:
             bad_title.append((rel, f'実際は{st}だが title の表記は{says or "無し"}', title))
         for ns, avg, head in clumps:
             bad_clump.append((rel, ns, avg, head))
@@ -269,7 +275,9 @@ def main():
     # (re.S 無し・隣接必須の旧版は96件を取りこぼし、Bを常に0件と誤報していた)
     li_re = re.compile(r'<li\b[^>]*>\s*<a\s[^>]*href="([^"]+)"[^>]*>(.*?)</a>\s*</li>',
                        re.S | re.I)
-    for idx in sorted(ROOT.rglob('index.html')):
+    # 一覧ページは index.html だけではない。index_txt.html / index_txt_files.html も
+    # link-list を持つ一覧なので、index.html 限定にすると無検査領域ができる。
+    for idx in sorted(ROOT.rglob('index*.html')):
         html = idx.read_text(encoding='utf-8', errors='replace')
         if 'link-list' not in html:
             continue
@@ -287,7 +295,7 @@ def main():
     # 付与したclassがどのCSSにも定義されていないと、バッジは無装飾の素のテキストとして
     # 表示される。HTMLだけ見ても気づけないので、リンク先のCSSまで辿って確認する。
     bad_css = []
-    for idx in sorted(ROOT.rglob('index.html')):
+    for idx in sorted(ROOT.rglob('index*.html')):
         html = idx.read_text(encoding='utf-8', errors='replace')
         used = set(re.findall(r'class="([^"]*\btr-[\w-]+[^"]*)"', html))
         if not used:
@@ -298,7 +306,14 @@ def main():
             p = (idx.parent / href).resolve()
             if p.exists():
                 css += p.read_text(encoding='utf-8', errors='replace')
-        missing = sorted(n for n in names if f'.{n}' not in css)
+        # ★ 素の部分文字列検索 (f'.{n}' not in css) にしてはならない。
+        #   CSSの説明コメントに「.tr-yes ルビ注釈＋和訳」のようにクラス名を書くと、
+        #   実際の色定義を全部消してもコメントだけで検査が通ってしまう
+        #   (この検査を追加した 880bb28 のコメントが、まさに検査自身を無効化していた)。
+        #   コメントを除去したうえで、クラス名の後に { か , が続くことまで確認する。
+        css = re.sub(r'/\*.*?\*/', ' ', css, flags=re.S)
+        missing = sorted(n for n in names
+                         if not re.search(r'\.' + re.escape(n) + r'\s*[,{]', css))
         if missing:
             bad_css.append((idx.relative_to(ROOT), missing))
 

@@ -249,3 +249,24 @@ body {
     border-radius: 12px;
   }
 }
+
+/* ▼ 日本語訳の有無を示すバッジ（一覧ページの各項目に付く）
+   indekso.css と同じ見た目にするため、色は変数ではなく実値で書く。
+   .tr-yes   ルビ注釈＋和訳
+   .tr-no    ルビ注釈のみ（和訳なし）
+   .tr-ko    韓国語訳版
+   .tr-plain ルビ注釈は無いが和訳はある原文版 */
+.tr-tag {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.tr-yes   { background: #d9efe9; color: #0d5b54; }
+.tr-no    { background: #f0e6d2; color: #7a5c1e; }
+.tr-ko    { background: #e6e3f2; color: #443c74; }
+.tr-plain { background: #e7eef7; color: #24507e; }
