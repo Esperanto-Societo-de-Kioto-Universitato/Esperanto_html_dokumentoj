@@ -171,6 +171,7 @@ h2 {
   margin-top: 3px;
   color: var(--muted);
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 
 .badge {
